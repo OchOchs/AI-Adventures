@@ -1,5 +1,4 @@
 flask
 langchain-openai
 python-dotenv
-markdown
 openai
