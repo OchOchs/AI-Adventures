@@ -16,24 +16,26 @@ new_history = False
 
 @app.route('/')
 def main():
+    """ Render the home page """
     global new_history
     new_history = True
     return render_template('home.html')
 
 @app.route('/submit/<step>', methods=['POST'])
 def submit(step):
+    """ Handle the user input and return the chatbot response """
+    # Get the user input and feedback
     global new_history
     user_input = request.form.get('input')
     feedback = request.form.get('feedback')
 
-    # Lade den Prompt aus einer JSON-Datei
+    # load the prompts and texts
     with open("./resources/prompts.json", "r") as file:
         prompts = json.load(file)
     with open("./resources/texts.json", "r") as file:
         texts = json.load(file)
 
-    # Erstelle den Benutzer-Prompt
-    
+    # Set the text, schema and user prompt based on the step
     if step == "1":
         text = texts["text_theme"]
         schema = theme_schema
@@ -65,7 +67,7 @@ def submit(step):
         user_prompt = prompts["adventure_continue"].format(choice=user_input)
     print(f'user_prompt: {user_prompt}')
 
-    # Rufe das LLM an und verarbeite die Antwort
+    # Get the chatbot response
     if new_history:
         response = ai.chat_call(user_prompt, schema, new_history=True)
     else:
@@ -75,12 +77,12 @@ def submit(step):
 
     new_history = False
 
+    # Get the images for the chatbot response and return the response
     if step == "1" or step == "2":
         images = ai.image_call(chatbot_response)
 
         data = {"options": [], "text": text}
         for img, info in zip(images, chatbot_response):
-            # Füge die Entscheidungen mit Titel, Beschreibung und Bild-URL der Liste hinzu
             data["options"].append({
                 "title": info["title"],
                 "description": info["description"],
@@ -94,7 +96,6 @@ def submit(step):
 
         data = {"options": [], "text": chatbot_response["text"]}
         for img, info in zip(images, chatbot_response["options"]):
-            # Füge die Entscheidungen mit Titel, Beschreibung und Bild-URL der Liste hinzu
             data["options"].append({
                 "title": info["title"],
                 "description": info["description"],

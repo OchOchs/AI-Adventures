@@ -9,12 +9,13 @@ from langchain_core.prompts import MessagesPlaceholder
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
-from langchain.callbacks.manager import CallbackManager
-from langchain.callbacks import LangChainTracer
 from openai import OpenAI
 
 class AITools(object):
+    """ A class to handle the interaction with the OpenAI API """
     def __init__(self):
+        """ Initialize the class with the OpenAI API key and the model name """
+        # Load the OpenAI API key and model name from the .env file
         load_dotenv()
         self.OPENAI_API_KEY = os.getenv("OPENAI_KEY")
         self.OPENAI_MODEL = os.getenv("OPENAI_MODEL")
@@ -24,8 +25,10 @@ class AITools(object):
             self.prompts = json.load(file)
 
     def get_session_history(self) -> InMemoryChatMessageHistory:
+        """ Get the chat history for the current session """
+        # Create a new session history if it doesn't exist
         if self.session_id not in self.store:
-            print(f"Creating new session history for {self.session_id}")
+            print(f"Creating new session history")
             self.store[self.session_id] = InMemoryChatMessageHistory()
         return self.store[self.session_id]
 
@@ -37,14 +40,15 @@ class AITools(object):
         history = True,
         new_history = False
     ):
-        tracer = LangChainTracer(project_name="AI-Adevnetures")
-        callback_manager = CallbackManager([tracer])
+        """ Call the OpenAI API with the given prompt """
+        # Create a new instance of the ChatOpenAI class
+        llm = ChatOpenAI(api_key=self.OPENAI_API_KEY, model_name=self.OPENAI_MODEL)
 
-        llm = ChatOpenAI(api_key=self.OPENAI_API_KEY, model_name=self.OPENAI_MODEL, callback_manager=callback_manager)
-
+        # Set the schema for the structured output
         if schema:
             llm = llm.with_structured_output(schema)
 
+        # Get the chat history for the current session
         if history:
             if new_history:
                 self.store = {}
@@ -63,6 +67,7 @@ class AITools(object):
                 ])
             session_id = self.session_id
 
+            # Create a chain of runnables to handle the chat prompt
             chain = chat_prompt | llm
 
             chain_with_history = RunnableWithMessageHistory(
@@ -70,10 +75,10 @@ class AITools(object):
                 lambda: self.get_session_history(),
                 role_messages_key="role",
                 input_messages_key="input",
-                history_messages_key="history",
-                callback_manager=callback_manager
+                history_messages_key="history"
                 )
             
+            # Invoke the chain with the chat prompt and add history
             response = chain_with_history.invoke(
                 {"role": self.prompts["chatbot"],
                  "input": prompt},
@@ -91,15 +96,15 @@ class AITools(object):
         self,
         informations
     ):
-        # Initialisiere OpenAI-Client für die Bildgenerierung
+        """ Call the OpenAI API to generate images based on the given prompt """
+        # Create a new instance of the OpenAI class
         client = OpenAI(api_key=self.OPENAI_API_KEY)
 
-        # Liste für die Rückgabe der Themen mit Bild-URLs
+        # Generate images based on the given prompt for each information
         data = []
         for info in informations:
             title = info["title"]
             description = info["description"]
-            # Generiere das Bild basierend auf dem Thema
             prompt=self.prompts["image"].format(title=title, description=description)
 
             while True:

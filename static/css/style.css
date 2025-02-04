@@ -11,8 +11,10 @@ body {
     line-height: 1.6;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Ändern Sie dies von center zu flex-start */
     height: 100vh;
+    overflow: auto; /* Fügen Sie dies hinzu, um vertikales Scrollen zu ermöglichen */
+    padding-top: 20px; /* Fügen Sie dies hinzu, um etwas Abstand oben zu schaffen */
 }
 
 .container {
