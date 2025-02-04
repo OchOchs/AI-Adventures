@@ -55,6 +55,5 @@ Whether you're a fan of classic interactive fiction or looking for a new way to 
 - Implement adventure length options, including the ability to set a defined endpoint
 - Design a distinctive logo to enhance brand identity
 - Expand platform compatibility beyond web applications
-- Incorporate voice recording for user feedback and commands
 - Develop multi-user persistence for collaborative storytelling experiences
 - Add comprehensive type hints throughout the codebase to improve code readability
