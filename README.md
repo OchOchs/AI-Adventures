@@ -5,15 +5,15 @@ This project is an AI-powered text adventure game generator that creates immersi
 ## Setup
 
 1. Clone the repository:
-    git clone https://github.com/OchOchs/AI-Adventures.git
-    cd text-adventure-game-generator
+    `git clone https://github.com/OchOchs/AI-Adventures.git`
+    `cd text-adventure-game-generator`
 
 2. Create a virtual environment (optional but recommended):
-    python -m venv .venv
-    . .venv/bin/activate # On Windows use venv\Scripts\activate
+    `python -m venv .venv`
+    `. .venv/bin/activate` # On Windows use venv\Scripts\activate
 
 3. Install the required packages:
-    pip install -r requirements.txt
+    `pip install -r requirements.txt`
 
 4. Set up your OpenAI API key and OpenAI Model:
 - Create a `.env` file in the project root
@@ -23,7 +23,7 @@ This project is an AI-powered text adventure game generator that creates immersi
 ## Usage
 
 1. Run Flask to start generating your text adventure in your localhost:
-    flask run
+    `flask run`
 2. Open your browser:
     `http://localhost:5000`
 
