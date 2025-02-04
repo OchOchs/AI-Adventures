@@ -1,14 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
     let step = 1;
+    const record = document.getElementById("voice-record-btn");
+    const inputField = document.getElementById('player-input');
     function navigateTo(path, input="", feedback="") {
         console.log('Navigiere zu', path);
         console.log('Input:', input);
         console.log('Feedback:', feedback);
         const submitBtn = document.getElementById('submit-btn');
         const optionResults = document.getElementById('option-results');
-        const inputField = document.getElementById('player-input');
         
         submitBtn.disabled = true;
+        record.disabled = true;
         optionResults.style.display = 'none';
         inputField.placeholder = "Loading...";
         
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 displayOptions(data.response.options, data.step);
                 displayText(data.response.text, data.step);
                 submitBtn.disabled = false;
+                record.disabled = false;
             }
             else {
                 console.error('Error: Keine Optionen erhalten');
@@ -38,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
 
     function submit() {
-        const input = document.getElementById('player-input').value;
+        const input = inputField.value;
         if (step === 1) {
             navigateTo(`submit/${step}`, input);
         } else if (step === "1" || step === "2") {
@@ -80,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function displayText(text, newStep=0) {
         const textContainer = document.getElementById('story');
-        const inputField = document.getElementById('player-input');
         textContainer.innerHTML += "\n\n" + text;
         if (newStep >= 3) {
             textContainer.innerHTML += "\n\n" + "You can now either choose one of these options or write your own, to continue the story.";
@@ -96,6 +98,53 @@ document.addEventListener('DOMContentLoaded', function () {
         displayText("You chose: " + selectedOption.title + "\n\n" + selectedOption.description);
         navigateTo(`submit/${parseInt(step) + 1}`, JSON.stringify(optionData));
     };
+
+    if (navigator.mediaDevices.getUserMedia) {
+    
+        let onMediaSetupSuccess = function (stream) {
+            const mediaRecorder = new MediaRecorder(stream);
+            let chunks = [];
+    
+            record.onclick = function() {
+                if (mediaRecorder.state == "recording") {
+                    mediaRecorder.stop();
+                    record.style.backgroundColor = "#036ad8";
+                } else {
+                    mediaRecorder.start();
+                    record.style.backgroundColor = "red";
+                }
+            }
+    
+            mediaRecorder.ondataavailable = function (e) {
+                chunks.push(e.data);
+            }
+    
+            mediaRecorder.onstop = function () {
+                let blob = new Blob(chunks, {type: "audio/webm"});
+                chunks = [];
+    
+                let formData = new FormData();
+                formData.append("audio", blob);
+    
+                fetch("/transcribe", {
+                    method: "POST",
+                    body: formData
+                }).then((response) => response.json())
+                .then((data) => {
+                    inputField.value = data.output;
+                })
+            }
+        }
+    
+        let onMediaSetupFailure = function(err) {
+            console.log(err);
+        }   
+    
+        navigator.mediaDevices.getUserMedia({ audio: true}).then(onMediaSetupSuccess, onMediaSetupFailure);
+    
+    } else {
+        alert("getUserMedia is not supported in your browser!")
+    }
 
     document.getElementById('submit-btn').addEventListener('click', submit);
     document.getElementById('home').addEventListener('click', function(event) {

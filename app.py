@@ -1,7 +1,9 @@
 import json
+import io
 
 from flask import Flask, render_template, jsonify, request
 from llm_schemas import theme_schema, character_schema, ResponseSchema
+from openai import OpenAI
 from AITools import AITools
 
 app = Flask(__name__)
@@ -13,6 +15,7 @@ app.config.update(
 )
 ai = AITools()
 new_history = False
+transcription_client = OpenAI()
 
 @app.route('/')
 def main():
@@ -103,3 +106,16 @@ def submit(step):
             })
         return jsonify({"response": data,
                         "step": step})
+    
+@app.route("/transcribe", methods=["POST"])
+def handle_transcript():
+    file = request.files["audio"]
+    buffer = io.BytesIO(file.read())
+    buffer.name = "audio.webm"
+
+    transcript = transcription_client.audio.transcriptions.create(
+        model="whisper-1",
+        file=buffer
+    )
+    print(transcript.text)
+    return {"output": transcript.text}
